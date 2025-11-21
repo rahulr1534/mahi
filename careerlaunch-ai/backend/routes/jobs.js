@@ -5,7 +5,7 @@ const auth = require('../middleware/auth');
 const router = express.Router();
 
 // Search jobs based on skills/location using JSearch API
-router.get('/search', auth, async (req, res) => {
+router.get('/search', async (req, res) => {
   try {
     const { skills, location, keywords, page = 1, resumeId } = req.query;
 
@@ -247,36 +247,43 @@ router.get('/search', auth, async (req, res) => {
         filteredJobs = demoJobs.filter(job => {
           let matches = true;
 
-          // Skills matching
+          // Skills matching - more lenient
           if (skills) {
             const skillArray = skills.split(',').map(s => s.trim().toLowerCase()).filter(s => s.length > 0);
             if (skillArray.length > 0) {
               const jobSkills = job.skills.map(s => s.toLowerCase());
               const skillMatch = skillArray.some(userSkill =>
                 jobSkills.some(jobSkill =>
-                  jobSkill.includes(userSkill) || userSkill.includes(jobSkill)
+                  jobSkill.includes(userSkill) || userSkill.includes(jobSkill) ||
+                  // Also check partial matches
+                  userSkill.split(' ').some(word => jobSkill.includes(word)) ||
+                  jobSkill.split(' ').some(word => userSkill.includes(word))
                 )
               );
               if (!skillMatch) matches = false;
             }
           }
 
-          // Location matching
+          // Location matching - more lenient
           if (location && matches) {
             const locationLower = location.toLowerCase();
             const jobLocation = job.location.toLowerCase();
             if (!jobLocation.includes(locationLower) &&
                 !locationLower.includes(jobLocation.split(',')[0].trim()) &&
-                !jobLocation.includes('remote')) {
+                !jobLocation.includes('remote') &&
+                !locationLower.includes('remote')) {
               matches = false;
             }
           }
 
-          // Keywords matching
+          // Keywords matching - more lenient
           if (keywords && matches) {
             const keywordLower = keywords.toLowerCase();
             const jobText = `${job.title} ${job.description} ${job.skills.join(' ')}`.toLowerCase();
-            if (!jobText.includes(keywordLower)) {
+            const keywordMatch = keywordLower.split(' ').some(word =>
+              word.length > 2 && jobText.includes(word)
+            );
+            if (!keywordMatch && !jobText.includes(keywordLower)) {
               matches = false;
             }
           }
@@ -284,9 +291,45 @@ router.get('/search', auth, async (req, res) => {
           return matches;
         });
 
-        // If no matches found, return jobs with some relevance
+        // If no matches found, return jobs with some relevance or all jobs
         if (filteredJobs.length === 0) {
-          filteredJobs = demoJobs.slice(0, 5); // Return top 5 as suggestions
+          // Try a broader search - return jobs that match at least one criterion
+          filteredJobs = demoJobs.filter(job => {
+            let partialMatch = false;
+
+            if (skills) {
+              const skillArray = skills.split(',').map(s => s.trim().toLowerCase()).filter(s => s.length > 0);
+              const jobSkills = job.skills.map(s => s.toLowerCase());
+              if (skillArray.some(userSkill =>
+                jobSkills.some(jobSkill => jobSkill.includes(userSkill) || userSkill.includes(jobSkill))
+              )) {
+                partialMatch = true;
+              }
+            }
+
+            if (location) {
+              const locationLower = location.toLowerCase();
+              const jobLocation = job.location.toLowerCase();
+              if (jobLocation.includes(locationLower) || jobLocation.includes('remote')) {
+                partialMatch = true;
+              }
+            }
+
+            if (keywords) {
+              const keywordLower = keywords.toLowerCase();
+              const jobText = `${job.title} ${job.description}`.toLowerCase();
+              if (jobText.includes(keywordLower)) {
+                partialMatch = true;
+              }
+            }
+
+            return partialMatch;
+          });
+
+          // If still no matches, return top 8 jobs
+          if (filteredJobs.length === 0) {
+            filteredJobs = demoJobs.slice(0, 8);
+          }
         }
       }
 

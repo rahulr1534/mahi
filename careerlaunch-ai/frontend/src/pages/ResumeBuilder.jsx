@@ -5,6 +5,8 @@ import { Save, Sparkles, Eye, ArrowLeft } from 'lucide-react';
 import ResumePreview from '../components/ResumePreview';
 
 const ResumeBuilder = () => {
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const resumeId = searchParams.get('id');
@@ -70,7 +72,7 @@ const ResumeBuilder = () => {
   const fetchResume = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`http://localhost:5000/api/resumes/${resumeId}`);
+      const response = await axios.get(`${API_BASE_URL}/api/resumes/${resumeId}`);
       setFormData(response.data);
     } catch {
       setError('Failed to load resume');
@@ -85,9 +87,9 @@ const ResumeBuilder = () => {
 
     try {
       if (resumeId) {
-        await axios.put(`http://localhost:5000/api/resumes/${resumeId}`, formData);
+        await axios.put(`${API_BASE_URL}/api/resumes/${resumeId}`, formData);
       } else {
-        await axios.post('http://localhost:5000/api/resumes', formData);
+        await axios.post(`${API_BASE_URL}/api/resumes`, formData);
       }
       navigate('/dashboard');
     } catch {
@@ -99,20 +101,36 @@ const ResumeBuilder = () => {
 
   const generateAIContent = async () => {
     try {
-      const response = await axios.post('http://localhost:5000/api/resumes/generate', {
+      setError('');
+      const response = await axios.post(`${API_BASE_URL}/api/resumes/generate`, {
         prompt: 'Generate professional resume content',
-        template: formData.template
+        template: formData.template,
+        experience: formData.experience,
+        skills: formData.skills,
+        education: formData.education,
+        targetRole: formData.title || 'Professional Role'
       });
 
       const aiContent = response.data;
+
+      // Show success message
+      setError(''); // Clear any previous errors
+
+      // Update form data with AI-generated content
       setFormData(prev => ({
         ...prev,
         summary: aiContent.summary || prev.summary,
-        skills: aiContent.skills || prev.skills,
-        experience: aiContent.experience || prev.experience
+        skills: aiContent.skills || prev.skills
       }));
+
+      // Show AI suggestions if provided
+      if (aiContent.suggestions) {
+        // You could show this in a toast notification or modal
+        console.log('AI Suggestions:', aiContent.suggestions);
+      }
     } catch (error) {
-      setError('AI generation failed');
+      console.error('AI generation error:', error);
+      setError('AI generation failed. Please try again or add your OpenAI API key.');
     }
   };
 

@@ -3,6 +3,8 @@ import axios from 'axios';
 import { Search, MapPin, DollarSign, Calendar, ExternalLink, Sparkles, Target } from 'lucide-react';
 
 const JobSearch = () => {
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -24,7 +26,7 @@ const JobSearch = () => {
       setLoading(true);
       setError('');
       const queryString = new URLSearchParams(params).toString();
-      const response = await axios.get(`http://localhost:5000/api/jobs/search?${queryString}`);
+      const response = await axios.get(`${API_BASE_URL}/api/jobs/search?${queryString}`);
       setJobs(response.data);
     } catch (error) {
       console.error('Job search error:', error);
@@ -63,7 +65,7 @@ const JobSearch = () => {
 
   const fetchUserResumes = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/resumes');
+      const response = await axios.get(`${API_BASE_URL}/api/resumes`);
       setUserResumes(response.data);
     } catch (error) {
       console.error('Failed to fetch resumes:', error);
@@ -79,7 +81,7 @@ const JobSearch = () => {
     try {
       setLoading(true);
       setError('');
-      const response = await axios.get(`http://localhost:5000/api/jobs/search?resumeId=${selectedResume}`);
+      const response = await axios.get(`${API_BASE_URL}/api/jobs/search?resumeId=${selectedResume}`);
       setJobs(response.data);
       setShowResumeSelector(false);
     } catch (error) {

@@ -242,86 +242,71 @@ const InterviewSession = () => {
           </div>
         </div>
       ) : (
-        /* Feedback Display */
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700 mb-6">
-          <div className="flex items-center gap-2 mb-4">
-            <MessageSquare className="h-5 w-5 text-blue-500" />
-            <h3 className="text-lg font-semibold text-white">AI Feedback</h3>
+        /* Chat-like Feedback Display */
+        <div className="mb-6">
+          {/* AI Interviewer Chat Bubble */}
+          <div className="flex gap-4 mb-4">
+            <div className="flex-shrink-0">
+              <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+                <MessageSquare className="h-5 w-5 text-white" />
+              </div>
+            </div>
+            <div className="flex-1">
+              <div className="bg-gray-800 rounded-2xl rounded-tl-md px-4 py-3 border border-gray-700">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-blue-400 font-semibold text-sm">AI Interviewer</span>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    feedback.score >= 8 ? 'bg-green-600' :
+                    feedback.score >= 6 ? 'bg-yellow-600' : 'bg-red-600'
+                  } text-white`}>
+                    {feedback.score}/10
+                  </span>
+                </div>
+
+                <div className="text-gray-300 leading-relaxed">
+                  {feedback.comments || "Thanks for your response! Let's continue with the next question."}
+                </div>
+
+                {/* Quick feedback points */}
+                {(feedback.strengths?.length > 0 || feedback.improvements?.length > 0) && (
+                  <div className="mt-3 pt-3 border-t border-gray-700">
+                    {feedback.strengths?.length > 0 && (
+                      <div className="mb-2">
+                        <span className="text-green-400 text-sm font-medium">✓ What you did well:</span>
+                        <ul className="text-gray-300 text-sm mt-1 space-y-1">
+                          {feedback.strengths.slice(0, 2).map((strength, index) => (
+                            <li key={index} className="flex items-start">
+                              <span className="text-green-400 mr-2">•</span>
+                              {strength}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {feedback.improvements?.length > 0 && (
+                      <div>
+                        <span className="text-yellow-400 text-sm font-medium">💡 Suggestions for improvement:</span>
+                        <ul className="text-gray-300 text-sm mt-1 space-y-1">
+                          {feedback.improvements.slice(0, 2).map((improvement, index) => (
+                            <li key={index} className="flex items-start">
+                              <span className="text-yellow-400 mr-2">•</span>
+                              {improvement}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-
-          {/* Score */}
-          <div className="flex items-center gap-4 mb-4">
-            <div className="text-center">
-              <div className={`text-3xl font-bold ${feedback.score >= 8 ? 'text-green-400' : feedback.score >= 6 ? 'text-yellow-400' : 'text-red-400'}`}>
-                {feedback.score}/10
-              </div>
-              <div className="text-gray-400 text-sm">Overall Score</div>
-            </div>
-
-            <div className="flex-1 grid grid-cols-3 gap-4">
-              <div className="text-center">
-                <div className="text-xl font-semibold text-blue-400">{feedback.relevance}/10</div>
-                <div className="text-gray-400 text-sm">Relevance</div>
-              </div>
-              <div className="text-center">
-                <div className="text-xl font-semibold text-green-400">{feedback.clarity}/10</div>
-                <div className="text-gray-400 text-sm">Clarity</div>
-              </div>
-              <div className="text-center">
-                <div className="text-xl font-semibold text-purple-400">{feedback.completeness}/10</div>
-                <div className="text-gray-400 text-sm">Completeness</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Strengths */}
-          {feedback.strengths && feedback.strengths.length > 0 && (
-            <div className="mb-4">
-              <h4 className="text-green-400 font-semibold mb-2 flex items-center">
-                <CheckCircle className="h-4 w-4 mr-1" />
-                Strengths
-              </h4>
-              <ul className="text-gray-300 text-sm space-y-1">
-                {feedback.strengths.map((strength, index) => (
-                  <li key={index} className="flex items-start">
-                    <span className="text-green-400 mr-2">•</span>
-                    {strength}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* Improvements */}
-          {feedback.improvements && feedback.improvements.length > 0 && (
-            <div className="mb-4">
-              <h4 className="text-yellow-400 font-semibold mb-2 flex items-center">
-                <XCircle className="h-4 w-4 mr-1" />
-                Areas for Improvement
-              </h4>
-              <ul className="text-gray-300 text-sm space-y-1">
-                {feedback.improvements.map((improvement, index) => (
-                  <li key={index} className="flex items-start">
-                    <span className="text-yellow-400 mr-2">•</span>
-                    {improvement}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* Comments */}
-          {feedback.comments && (
-            <div className="mb-4">
-              <h4 className="text-blue-400 font-semibold mb-2">Overall Comments</h4>
-              <p className="text-gray-300 text-sm">{feedback.comments}</p>
-            </div>
-          )}
 
           <div className="text-center text-gray-400 text-sm">
             {interview.status === 'completed'
-              ? 'Interview completed! Redirecting to results...'
-              : 'Next question loading...'
+              ? '🎉 Interview completed! Redirecting to results...'
+              : '⏳ Preparing next question...'
             }
           </div>
         </div>

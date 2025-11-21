@@ -42,14 +42,7 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/job-search"
-              element={
-                <ProtectedRoute>
-                  <JobSearch />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/job-search" element={<JobSearch />} />
             <Route
               path="/mock-interview"
               element={

@@ -4,6 +4,8 @@ import axios from 'axios';
 import { FileText, Plus, Download, Edit, Trash2, Briefcase, MessageSquare } from 'lucide-react';
 
 const Dashboard = () => {
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+
   const [resumes, setResumes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -14,7 +16,7 @@ const Dashboard = () => {
 
   const fetchResumes = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/resumes');
+      const response = await axios.get(`${API_BASE_URL}/api/resumes`);
       setResumes(response.data);
     } catch {
       setError('Failed to load resumes');
@@ -29,7 +31,7 @@ const Dashboard = () => {
     }
 
     try {
-      await axios.delete(`http://localhost:5000/api/resumes/${id}`);
+      await axios.delete(`${API_BASE_URL}/api/resumes/${id}`);
       setResumes(resumes.filter(resume => resume._id !== id));
     } catch {
       setError('Failed to delete resume');

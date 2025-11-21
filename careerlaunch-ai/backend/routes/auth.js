@@ -8,17 +8,21 @@ const router = express.Router();
 // Register user
 router.post('/register', async (req, res) => {
   try {
+    console.log('Register request:', req.body);
     const { name, email, password } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
+      console.log('User already exists:', email);
       return res.status(400).json({ message: 'User already exists' });
     }
 
     // Create new user
     const user = new User({ name, email, password });
+    console.log('Creating user:', { name, email });
     await user.save();
+    console.log('User saved successfully');
 
     // Generate JWT token
     const token = jwt.sign(
@@ -36,6 +40,7 @@ router.post('/register', async (req, res) => {
       }
     });
   } catch (error) {
+    console.error('Register error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
